@@ -22,7 +22,7 @@ resource "aws_instance" "EC2_first_Instance" {
   user_data     = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
-              nohup busybox httpd -f -p 8080 &
+              nohup busybox httpd -f -p ${var.port_number} &
               EOF
 
   user_data_replace_on_change = true
@@ -36,10 +36,21 @@ resource "aws_instance" "EC2_first_Instance" {
 resource "aws_security_group" "instance" { //To allow the EC2 Instance to receive traffic on port 8080, we need to create security group
   name = "terraform-example-instance"
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = var.port_number
+    to_port     = var.port_number
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
+variable "port_number" {
+  description = "The port number the server is listening on"
+  type        = number
+  default     = 8080
+}
+
+output "public_ip" {
+  value       = aws_instance.EC2_first_Instance.public_ip
+  description = "The public IP address of the web server"
+
+}
